@@ -1,13 +1,24 @@
+<script setup lang="ts">
+import logoUrl from '~/assets/img/logo.jpg'
+
+withDefaults(defineProps<{
+  size?: 'small' | 'medium' | 'large'
+}>(), {
+  size: 'small'
+})
+</script>
+
 <template>
   <span
     class="brand-logo"
+    :class="`brand-logo--${size}`"
     aria-label="若林轻小说"
   >
-    <span
-      class="brand-logo__mark"
+    <img
+      :src="logoUrl"
+      class="brand-logo__image"
+      alt=""
       aria-hidden="true"
-    ><UIcon name="i-lucide-leaf" /></span>
-    <span class="brand-logo__text">若林</span>
-    <span class="brand-logo__suffix">轻小说</span>
+    >
   </span>
 </template>

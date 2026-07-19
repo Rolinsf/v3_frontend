@@ -126,7 +126,7 @@ function switchMode(value: AuthMode) {
   <div class="auth-page">
     <div class="auth-card">
       <div class="auth-card__brand">
-        <AppLogo />
+        <AppLogo size="large" />
       </div>
 
       <h1 class="auth-card__title">

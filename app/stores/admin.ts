@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia'
-import type { AdminData } from '~/types/admin'
+import type { AdminData, DiscoveryItem, FooterConfig, FooterLink } from '~/types/admin'
 import { initialAdminData } from '~/fixtures/admin'
 
-const STORAGE_KEY = 'wakabayashi-admin-data-v1'
+const STORAGE_KEY = 'wakabayashi-admin-data-v6'
 const cloneInitial = () => structuredClone(initialAdminData) as AdminData
 const uid = (prefix: string) => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
+const isSafeFooterUrl = (url: string) => url.startsWith('/') || url.startsWith('https://') || url.startsWith('mailto:')
 
 export const useAdminStore = defineStore('admin', () => {
   const data = ref<AdminData>(cloneInitial())
@@ -78,6 +79,64 @@ export const useAdminStore = defineStore('admin', () => {
     persist()
   }
 
+  function saveFooterSettings(settings: Pick<FooterConfig, 'copyright' | 'secondaryText'>) {
+    data.value.footer.copyright = settings.copyright.trim()
+    data.value.footer.secondaryText = settings.secondaryText.trim()
+    persist()
+  }
+
+  function addFooterLink(input: Omit<FooterLink, 'id'>) {
+    if (!input.label.trim() || !input.url.trim()) throw new Error('链接名称和地址不能为空。')
+    if (!isSafeFooterUrl(input.url.trim())) throw new Error('链接仅支持站内路径、HTTPS 或邮箱地址。')
+    data.value.footer.links.push({ ...input, id: uid('footer-link'), label: input.label.trim(), url: input.url.trim() })
+    persist()
+  }
+
+  function updateFooterLink(id: string, input: Omit<FooterLink, 'id'>) {
+    if (!input.label.trim() || !input.url.trim()) throw new Error('链接名称和地址不能为空。')
+    if (!isSafeFooterUrl(input.url.trim())) throw new Error('链接仅支持站内路径、HTTPS 或邮箱地址。')
+    const index = data.value.footer.links.findIndex(item => item.id === id)
+    if (index < 0) throw new Error('页脚链接不存在。')
+    data.value.footer.links[index] = { ...input, id, label: input.label.trim(), url: input.url.trim() }
+    persist()
+  }
+
+  function deleteFooterLink(id: string) {
+    data.value.footer.links = data.value.footer.links.filter(item => item.id !== id)
+    persist()
+  }
+
+  function toggleFooterLink(id: string) {
+    data.value.footer.links = data.value.footer.links.map(item => item.id === id ? { ...item, enabled: !item.enabled } : item)
+    persist()
+  }
+
+  function addDiscoveryItem(input: Omit<DiscoveryItem, 'id'>) {
+    if (!input.label.trim() || !input.url.trim()) throw new Error('名称和链接不能为空。')
+    if (!isSafeFooterUrl(input.url.trim())) throw new Error('链接仅支持站内路径、HTTPS 或邮箱地址。')
+    data.value.discoveryItems.push({ ...input, id: uid('discovery'), label: input.label.trim(), url: input.url.trim() })
+    persist()
+  }
+
+  function updateDiscoveryItem(id: string, input: Omit<DiscoveryItem, 'id'>) {
+    if (!input.label.trim() || !input.url.trim()) throw new Error('名称和链接不能为空。')
+    if (!isSafeFooterUrl(input.url.trim())) throw new Error('链接仅支持站内路径、HTTPS 或邮箱地址。')
+    const index = data.value.discoveryItems.findIndex(item => item.id === id)
+    if (index < 0) throw new Error('标签云条目不存在。')
+    data.value.discoveryItems[index] = { ...input, id, label: input.label.trim(), url: input.url.trim() }
+    persist()
+  }
+
+  function deleteDiscoveryItem(id: string) {
+    data.value.discoveryItems = data.value.discoveryItems.filter(item => item.id !== id)
+    persist()
+  }
+
+  function toggleDiscoveryItem(id: string) {
+    data.value.discoveryItems = data.value.discoveryItems.map(item => item.id === id ? { ...item, enabled: !item.enabled } : item)
+    persist()
+  }
+
   function review(id: string, status: 'approved' | 'rejected') {
     data.value.reviews = data.value.reviews.map(item => item.id === id ? { ...item, status } : item)
     persist()
@@ -95,5 +154,5 @@ export const useAdminStore = defineStore('admin', () => {
     persist()
   }
 
-  return { data, initialized, pendingReviews, pendingReports, initialize, addPrimary, addSecondary, toggleCategory, addTag, toggleTag, review, resolveReport, setBan }
+  return { data, initialized, pendingReviews, pendingReports, initialize, addPrimary, addSecondary, toggleCategory, addTag, toggleTag, saveFooterSettings, addFooterLink, updateFooterLink, deleteFooterLink, toggleFooterLink, addDiscoveryItem, updateDiscoveryItem, deleteDiscoveryItem, toggleDiscoveryItem, review, resolveReport, setBan }
 })
