@@ -8,4 +8,8 @@ export interface FooterLink { id: string, label: string, url: string, order: num
 export interface FooterConfig { copyright: string, secondaryText: string, links: FooterLink[] }
 export type DiscoveryItemType = 'author' | 'category' | 'tag'
 export interface DiscoveryItem { id: string, label: string, url: string, type: DiscoveryItemType, emphasis: 1 | 2 | 3, order: number, enabled: boolean }
-export interface AdminData { categories: Category[], tags: AdminTag[], reviews: ReviewItem[], reports: ReportItem[], users: AdminUser[], footer: FooterConfig, discoveryItems: DiscoveryItem[] }
+export type ActivityKind = 'monthly' | 'official' | 'community'
+export interface ActivityItem { id: string, title: string, summary: string, theme: string, kind: ActivityKind, startAt: string, endAt: string, enabled: boolean, creatorId?: string, creatorName?: string, submissionCount: number, viewCount: number, likeCount: number }
+export interface AnnouncementItem { id: string, title: string, content: string, publishedAt: string, enabled: boolean }
+export interface ActivitySubmission { id: string, activityId: string, title: string, authorName: string, synopsis: string, submittedAt: string, viewCount: number, likeCount: number, commentCount: number }
+export interface AdminData { categories: Category[], tags: AdminTag[], reviews: ReviewItem[], reports: ReportItem[], users: AdminUser[], footer: FooterConfig, discoveryItems: DiscoveryItem[], activities: ActivityItem[], announcements: AnnouncementItem[], activitySubmissions: ActivitySubmission[] }

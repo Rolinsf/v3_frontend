@@ -106,7 +106,7 @@ a, button { transition: color 180ms ease, background-color 180ms ease, border-co
 .featured-note__label { margin-bottom: .5rem; color: var(--color-brand-700); font-size: .75rem; letter-spacing: .08em; }
 .featured-note h2 { margin-bottom: .65rem; font-family: var(--font-reading); font-size: 1.2rem; font-weight: 600; }
 .featured-note p:not(.featured-note__label) { color: var(--site-muted); font-size: .8rem; line-height: 1.7; }
-.featured-note span { display: inline-flex; align-items: center; gap: .25rem; margin-top: .8rem; color: var(--color-brand-700); font-size: .8rem; }
+.featured-note__content > div > span { display: inline-flex; align-items: center; gap: .25rem; margin-top: .8rem; color: var(--color-brand-700); font-size: .8rem; }
 .home-section--surface { border-block: 1px solid var(--site-line); background: var(--site-surface); }
 .novel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
 .novel-card { display: grid; grid-template-columns: 7.5rem 1fr; gap: 1rem; min-width: 0; }

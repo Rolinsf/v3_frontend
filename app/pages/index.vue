@@ -15,6 +15,8 @@ const discoveryItems = computed(() => [...admin.data.value.discoveryItems]
 const cloudScale = ref(1)
 const cloudOffset = reactive({ x: 0, y: 0 })
 const cloudDragging = ref(false)
+const cloudInteractive = ref(false)
+const discoveryArea = ref<HTMLElement | null>(null)
 const discoveryViewport = ref<HTMLElement | null>(null)
 let cloudPointerStart = { x: 0, y: 0 }
 let cloudOffsetStart = { x: 0, y: 0 }
@@ -58,7 +60,7 @@ function scheduleCloudUpdate(offset?: { x: number, y: number }, scale?: number) 
 }
 
 function startCloudDrag(event: PointerEvent) {
-  if (event.button !== 0 || window.matchMedia('(max-width: 639px)').matches) return
+  if (event.button !== 0 || !cloudInteractive.value || window.matchMedia('(max-width: 639px)').matches) return
   cloudDragging.value = true
   cloudDidDrag = false
   cloudPointerStart = { x: event.clientX, y: event.clientY }
@@ -88,6 +90,7 @@ function stopCloudDrag() {
 }
 
 function zoomCloudByWheel(event: WheelEvent) {
+  if (!cloudInteractive.value || window.matchMedia('(max-width: 639px)').matches) return
   event.preventDefault()
   const delta = clamp(event.deltaY, -100, 100)
   const currentScale = pendingCloudScale ?? cloudScale.value
@@ -97,6 +100,14 @@ function zoomCloudByWheel(event: WheelEvent) {
 function guardCloudLink(event: MouseEvent) {
   if (cloudDidDrag) event.preventDefault()
   cloudDidDrag = false
+}
+
+function activateCloudInteraction() {
+  if (!window.matchMedia('(max-width: 639px)').matches) cloudInteractive.value = true
+}
+
+function deactivateCloudInteraction(event: PointerEvent) {
+  if (event.target instanceof Node && !discoveryArea.value?.contains(event.target)) cloudInteractive.value = false
 }
 
 const recommendationTransform = computed(() => `translate3d(${recommendationOffset.x}px, ${recommendationOffset.y}px, 0)`)
@@ -184,9 +195,13 @@ function startCarousel() {
   carouselTimer = setInterval(showNextRecommendation, 6000)
 }
 
-onMounted(startCarousel)
+onMounted(() => {
+  startCarousel()
+  document.addEventListener('pointerdown', deactivateCloudInteraction)
+})
 onBeforeUnmount(() => {
   stopCarousel()
+  document.removeEventListener('pointerdown', deactivateCloudInteraction)
   if (cloudFrame !== null) cancelAnimationFrame(cloudFrame)
   if (recommendationFrame !== null) cancelAnimationFrame(recommendationFrame)
   pendingCloudOffset = null
@@ -220,7 +235,13 @@ function formatReadAt(iso: string) {
   <div>
     <section class="home-hero">
       <div class="site-container home-hero__inner">
-        <div class="home-hero__discovery">
+        <div
+          ref="discoveryArea"
+          class="home-hero__discovery"
+          :class="{ 'is-cloud-active': cloudInteractive }"
+          @pointerdown="activateCloudInteraction"
+          @wheel="zoomCloudByWheel"
+        >
           <div
             v-if="activeRecommendation"
             ref="recommendationCard"
@@ -313,7 +334,6 @@ function formatReadAt(iso: string) {
             @pointermove="moveCloud"
             @pointerup="stopCloudDrag"
             @pointercancel="stopCloudDrag"
-            @wheel="zoomCloudByWheel"
           >
             <div
               class="discovery-cloud__items"
@@ -495,6 +515,13 @@ function formatReadAt(iso: string) {
   border-radius: 1rem;
   background: color-mix(in srgb, var(--site-surface) 90%, transparent);
   overflow: hidden;
+  cursor: default;
+  touch-action: auto;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.home-hero__discovery.is-cloud-active .discovery-cloud {
+  border-color: var(--color-brand-400);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-200) 45%, transparent);
   cursor: grab;
   touch-action: none;
 }
@@ -555,15 +582,17 @@ function formatReadAt(iso: string) {
   background: color-mix(in srgb, var(--site-surface) 94%, transparent);
   color: var(--color-brand-700);
   cursor: pointer;
+  line-height: 0;
   opacity: 0;
   transform: translateY(-50%);
   transition: opacity 180ms ease, background-color 180ms ease;
 }
+.featured-note__arrow > * { width: 1rem; height: 1rem; margin: 0; }
 .featured-note:hover .featured-note__arrow,
 .featured-note:focus-within .featured-note__arrow { opacity: 1; }
 .featured-note__arrow:hover { background: var(--color-brand-100); }
-.featured-note__arrow--previous { left: .55rem; }
-.featured-note__arrow--next { right: .55rem; }
+.featured-note__arrow--previous { left: .75rem; }
+.featured-note__arrow--next { right: .75rem; }
 .featured-note__dots {
   position: absolute;
   right: 1rem;
@@ -623,7 +652,7 @@ function formatReadAt(iso: string) {
 @media (max-width: 639px) {
   .home-hero__discovery { display: grid; gap: 1rem; min-height: 0; }
   .featured-note { position: relative; top: auto; right: auto; width: 100%; transform: none; }
-  .discovery-cloud { height: 22rem; min-height: 22rem; padding: 1rem; }
+  .discovery-cloud { display: none; }
   .featured-note__content { grid-template-columns: 5.5rem 1fr; gap: 1rem; }
   .featured-note__arrow { opacity: 1; }
   .featured-note__arrow--previous { left: .25rem; }

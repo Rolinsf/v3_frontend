@@ -127,6 +127,12 @@ export const useAuthStore = defineStore('auth', () => {
     persist()
   }
 
+  function updateProfile(input: { name: string, avatarUrl?: string }) {
+    if (!user.value) return
+    user.value = { ...user.value, name: input.name.trim() || user.value.name, avatarUrl: input.avatarUrl?.trim() || undefined }
+    persist()
+  }
+
   // ----- 来源页回跳意图 -----
 
   /** 保存登录意图，登录成功后由页面读取并恢复操作。 */
@@ -192,6 +198,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     logout,
+    updateProfile,
     saveIntent,
     consumeIntent,
     resumeIntent,

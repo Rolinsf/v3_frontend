@@ -45,6 +45,12 @@ useSeoMeta({
           </div>
         </section>
 
+        <UserContributionCalendar
+          v-if="user.role === 'author'"
+          :contributions="user.contributions ?? []"
+          title="创作贡献"
+        />
+
         <section class="profile-works">
           <header>
             <div><p>PUBLICATIONS</p><h2>公开作品</h2></div>

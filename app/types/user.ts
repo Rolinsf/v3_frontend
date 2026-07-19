@@ -16,4 +16,12 @@ export interface UserSummary {
 /** 公开主页可展示的资料；不包含联系方式、账户设置或阅读数据。 */
 export interface PublicUserProfile extends UserSummary {
   joinedAt: string
+  /** 作者主动公开的创作贡献；同一天可以有多次章节发布或作品更新。 */
+  contributions?: ContributionDay[]
+}
+
+export interface ContributionDay {
+  /** YYYY-MM-DD，本地自然日。 */
+  date: string
+  count: number
 }

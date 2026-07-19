@@ -29,6 +29,21 @@ const discoveryMockItems = discoveryMockLabels.map(([label, emphasis], index) =>
 }))
 
 export const initialAdminData: AdminData = {
+  activitySubmissions: [
+    { id: 'submission-rain-platform', activityId: 'monthly-2026-07', title: '雨停之后的旧月台', authorName: '青木与夏', synopsis: '多年后，两位曾在雨天分别的少年少女，再次回到即将废弃的车站。', submittedAt: '2026-07-18T20:10:00+08:00', viewCount: 386, likeCount: 42, commentCount: 8 },
+    { id: 'submission-seventh-letter', activityId: 'monthly-2026-07', title: '第七封没有寄出的信', authorName: '白川灯', synopsis: '邮差在旧信箱里发现一封迟到了十年的信，也找回了一段被遗忘的约定。', submittedAt: '2026-07-16T18:30:00+08:00', viewCount: 524, likeCount: 67, commentCount: 13 },
+    { id: 'submission-summer-sea', activityId: 'monthly-2026-08', title: '夏末，海风经过教室', authorName: '森下遥', synopsis: '毕业前最后一个暑假，他们决定把没有说完的话留在海边。', submittedAt: '2026-08-05T21:00:00+08:00', viewCount: 218, likeCount: 31, commentCount: 5 },
+    { id: 'submission-cicada', activityId: 'monthly-2026-08', title: '蝉鸣停止的那一天', authorName: '夏至之后', synopsis: '小镇的夏天突然失去了声音，只有她还记得蝉鸣原本的模样。', submittedAt: '2026-08-03T19:40:00+08:00', viewCount: 295, likeCount: 38, commentCount: 7 }
+  ],
+  announcements: [
+    { id: 'announcement-welcome', title: '若林轻小说站公告', content: '活动中心现已开放。欢迎参加每月主题创作，也可以创建属于自己的社区活动。', publishedAt: '2026-07-19T10:00:00+08:00', enabled: true }
+  ],
+  activities: [
+    { id: 'monthly-2026-07', title: '2026年7月主题活动', summary: '以“重逢”为主题创作一篇轻小说。题材不限，可以是久别重逢，也可以是与过去的自己再次相遇。', theme: '重逢', kind: 'monthly', startAt: '2026-07-01', endAt: '2026-07-31', enabled: true, submissionCount: 18, viewCount: 1260, likeCount: 86 },
+    { id: 'monthly-2026-08', title: '2026年8月主题活动', summary: '在盛夏结束以前，写下一段只属于这个季节的故事。', theme: '夏末', kind: 'monthly', startAt: '2026-08-01', endAt: '2026-08-31', enabled: true, submissionCount: 6, viewCount: 780, likeCount: 45 },
+    { id: 'official-short', title: '若林三题短篇挑战', summary: '从“旧车站、蓝色雨伞、未寄出的信”三个元素出发，完成一篇短篇作品。', theme: '三题创作', kind: 'official', startAt: '2026-07-15', endAt: '2026-09-15', enabled: true, submissionCount: 24, viewCount: 1890, likeCount: 132 },
+    { id: 'community-night', title: '深夜故事交换会', summary: '由社区读者发起的夜晚主题创作活动，分享那些只适合在熄灯后阅读的故事。', theme: '夜晚', kind: 'community', startAt: '2026-07-20', endAt: '2026-08-20', enabled: true, creatorId: 'reader-kaze', creatorName: '风从书页来', submissionCount: 3, viewCount: 356, likeCount: 21 }
+  ],
   discoveryItems: discoveryMockItems,
   footer: {
     copyright: '© 2023 若林轻小说 All rights reserved.',

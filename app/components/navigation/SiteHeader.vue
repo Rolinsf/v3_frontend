@@ -2,11 +2,16 @@
 const route = useRoute()
 const auth = useAuthStore()
 const community = useComments()
+const admin = useAdmin()
 const searchQuery = ref('')
+const announcementOpen = ref(false)
+const announcements = computed(() => admin.data.value.announcements.filter(item => item.enabled).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)))
 const navigation = [
   { label: '首页', to: '/' },
   { label: '书库', to: '/novels' },
-  { label: '排行', to: '/rankings' }
+  { label: '排行', to: '/rankings' },
+  { label: '活动', to: '/events' },
+  { label: '我的', to: '/account' }
 ]
 
 function submitSearch() {
@@ -64,6 +69,14 @@ function avatarLabel() {
         />
       </form>
       <div class="site-header__actions">
+        <UButton
+          label="公告"
+          icon="i-lucide-megaphone"
+          color="neutral"
+          variant="ghost"
+          class="desktop-action"
+          @click="announcementOpen = true"
+        />
         <UButton
           to="/creator"
           label="创作中心"
@@ -142,5 +155,35 @@ function avatarLabel() {
         </ClientOnly>
       </div>
     </div>
+    <UModal
+      v-model:open="announcementOpen"
+      title="网站公告"
+      description="若林轻小说的最新通知"
+    >
+      <template #body>
+        <div class="announcement-list">
+          <article
+            v-for="item in announcements"
+            :key="item.id"
+          >
+            <h3>{{ item.title }}</h3>
+            <p>{{ item.content }}</p>
+            <time :datetime="item.publishedAt">{{ item.publishedAt.slice(0, 10) }}</time>
+          </article>
+          <p v-if="!announcements.length">
+            暂时没有公告。
+          </p>
+        </div>
+      </template>
+    </UModal>
   </header>
 </template>
+
+<style scoped>
+.announcement-list { display: grid; gap: 1rem; }
+.announcement-list article { padding-bottom: 1rem; border-bottom: 1px solid var(--site-line); }
+.announcement-list article:last-child { border-bottom: 0; }
+.announcement-list h3 { margin: 0 0 .5rem; font-weight: 600; }
+.announcement-list p { margin: 0; color: var(--site-muted); line-height: 1.8; white-space: pre-wrap; }
+.announcement-list time { display: block; margin-top: .6rem; color: var(--site-muted); font-size: .7rem; }
+</style>

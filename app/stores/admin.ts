@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
-import type { AdminData, DiscoveryItem, FooterConfig, FooterLink } from '~/types/admin'
+/* eslint-disable @stylistic/max-statements-per-line */
+import type { ActivityItem, AdminData, AnnouncementItem, DiscoveryItem, FooterConfig, FooterLink } from '~/types/admin'
 import { initialAdminData } from '~/fixtures/admin'
 
-const STORAGE_KEY = 'wakabayashi-admin-data-v6'
+const STORAGE_KEY = 'wakabayashi-admin-data-v8'
 const cloneInitial = () => structuredClone(initialAdminData) as AdminData
 const uid = (prefix: string) => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
 const isSafeFooterUrl = (url: string) => url.startsWith('/') || url.startsWith('https://') || url.startsWith('mailto:')
@@ -137,6 +138,29 @@ export const useAdminStore = defineStore('admin', () => {
     persist()
   }
 
+  function addActivity(input: Omit<ActivityItem, 'id' | 'submissionCount' | 'viewCount' | 'likeCount'>) {
+    if (!input.title.trim() || !input.summary.trim()) throw new Error('活动标题和说明不能为空。')
+    data.value.activities.unshift({ ...input, id: uid('activity'), title: input.title.trim(), summary: input.summary.trim(), submissionCount: 0, viewCount: 0, likeCount: 0 })
+    persist()
+  }
+
+  function updateActivity(id: string, input: Omit<ActivityItem, 'id' | 'submissionCount' | 'viewCount' | 'likeCount'>) {
+    const current = data.value.activities.find(item => item.id === id)
+    if (!current) throw new Error('活动不存在。')
+    Object.assign(current, input, { title: input.title.trim(), summary: input.summary.trim() })
+    persist()
+  }
+
+  function deleteActivity(id: string) { data.value.activities = data.value.activities.filter(item => item.id !== id); persist() }
+  function toggleActivity(id: string) { data.value.activities = data.value.activities.map(item => item.id === id ? { ...item, enabled: !item.enabled } : item); persist() }
+  function submitActivity(id: string) { const item = data.value.activities.find(activity => activity.id === id); if (item) { item.submissionCount += 1; persist() } }
+  function likeActivity(id: string) { const item = data.value.activities.find(activity => activity.id === id); if (item) { item.likeCount += 1; persist() } }
+
+  function addAnnouncement(input: Omit<AnnouncementItem, 'id'>) { data.value.announcements.unshift({ ...input, id: uid('announcement') }); persist() }
+  function updateAnnouncement(id: string, input: Omit<AnnouncementItem, 'id'>) { const item = data.value.announcements.find(entry => entry.id === id); if (item) { Object.assign(item, input); persist() } }
+  function deleteAnnouncement(id: string) { data.value.announcements = data.value.announcements.filter(item => item.id !== id); persist() }
+  function toggleAnnouncement(id: string) { data.value.announcements = data.value.announcements.map(item => item.id === id ? { ...item, enabled: !item.enabled } : item); persist() }
+
   function review(id: string, status: 'approved' | 'rejected') {
     data.value.reviews = data.value.reviews.map(item => item.id === id ? { ...item, status } : item)
     persist()
@@ -154,5 +178,5 @@ export const useAdminStore = defineStore('admin', () => {
     persist()
   }
 
-  return { data, initialized, pendingReviews, pendingReports, initialize, addPrimary, addSecondary, toggleCategory, addTag, toggleTag, saveFooterSettings, addFooterLink, updateFooterLink, deleteFooterLink, toggleFooterLink, addDiscoveryItem, updateDiscoveryItem, deleteDiscoveryItem, toggleDiscoveryItem, review, resolveReport, setBan }
+  return { data, initialized, pendingReviews, pendingReports, initialize, addPrimary, addSecondary, toggleCategory, addTag, toggleTag, saveFooterSettings, addFooterLink, updateFooterLink, deleteFooterLink, toggleFooterLink, addDiscoveryItem, updateDiscoveryItem, deleteDiscoveryItem, toggleDiscoveryItem, addActivity, updateActivity, deleteActivity, toggleActivity, submitActivity, likeActivity, addAnnouncement, updateAnnouncement, deleteAnnouncement, toggleAnnouncement, review, resolveReport, setBan }
 })

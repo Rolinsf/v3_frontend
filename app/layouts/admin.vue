@@ -7,6 +7,8 @@ const adminNav = [
   { label: '标签管理', icon: 'i-lucide-tags', to: '/admin/tags' },
   { label: '页脚管理', icon: 'i-lucide-panel-bottom', to: '/admin/footer' },
   { label: '首页标签云', icon: 'i-lucide-cloud', to: '/admin/discovery' },
+  { label: '活动管理', icon: 'i-lucide-calendar-days', to: '/admin/activities' },
+  { label: '公告管理', icon: 'i-lucide-megaphone', to: '/admin/announcements' },
   { label: '内容审核', icon: 'i-lucide-shield-check', to: '/admin/reviews' },
   { label: '举报处理', icon: 'i-lucide-flag', to: '/admin/reports' },
   { label: '用户封禁', icon: 'i-lucide-user-x', to: '/admin/bans' }
