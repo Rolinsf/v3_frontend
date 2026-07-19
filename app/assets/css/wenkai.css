@@ -1,0 +1,6 @@
+@import "lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css";
+
+.reader-shell,
+.creator-font-scope {
+  --font-reading: "LXGW WenKai Screen", "STKaiti", "KaiTi", serif;
+}

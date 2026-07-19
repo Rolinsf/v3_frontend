@@ -1,64 +1,40 @@
-# Nuxt Starter Template
+﻿# 若林轻小说社区前端
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+面向国内小圈子用户的轻小说阅读与创作社区前端，主要包含阅读、投稿、评论、收藏和分享等功能。
 
-Use this template to get started with [Nuxt UI](https://ui.nuxt.com) quickly.
+## 技术栈
 
-- [Live demo](https://starter-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
+- Nuxt 4 + Vue 3 + TypeScript
+- Nuxt UI 4 + Tailwind CSS 4
+- Pinia（客户端全局状态）、VueUse（组合函数工具集）
+- Vitest + Vue Test Utils + Nuxt Test Utils（单元/组件测试）
+- 包管理器：pnpm 11
+- 运行时：Node.js 24
 
-<a href="https://starter-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-    <img alt="Nuxt Starter Template" src="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png" width="830" height="466">
-  </picture>
-</a>
+详细选型与依赖边界见 [.agents/TECH_STACK.md](.agents/TECH_STACK.md)。
 
-> The starter template for Vue is on https://github.com/nuxt-ui-templates/starter-vue.
+## 环境准备
 
-## Quick Start
+1. 安装 Node.js 24（仓库根目录 `.nvmrc` 已固定版本，可使用 `nvm use`）；
+2. 启用 pnpm：`corepack enable`；
+3. 复制环境变量示例：`cp .env.example .env`，按需填写；
+4. 安装依赖：`pnpm install`。
 
-```bash [Terminal]
-npm create nuxt@latest -- -t ui
-```
+## 常用脚本
 
-## Deploy your own
+| 命令 | 作用 |
+| --- | --- |
+| `pnpm dev` | 启动开发服务器 |
+| `pnpm build` | 生产构建 |
+| `pnpm preview` | 预览生产构建 |
+| `pnpm lint` | ESLint 检查 |
+| `pnpm typecheck` | TypeScript 类型检查 |
+| `pnpm test` | 运行单元/组件测试 |
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=starter&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fstarter&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fstarter-dark.png&demo-url=https%3A%2F%2Fstarter-template.nuxt.dev%2F&demo-title=Nuxt%20Starter%20Template&demo-description=A%20minimal%20template%20to%20get%20started%20with%20Nuxt%20UI.)
+## 开发约定
 
-## Setup
-
-Make sure to install the dependencies:
-
-```bash
-pnpm install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-pnpm dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-pnpm build
-```
-
-Locally preview production build:
-
-```bash
-pnpm preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
-
-## Renovate integration
-
-Install [Renovate GitHub app](https://github.com/apps/renovate/installations/select_target) on your repository and you are good to go.
+- 技术栈与依赖边界见 [.agents/TECH_STACK.md](.agents/TECH_STACK.md)。
+- 目录职责与文件命名见 [.agents/PROJECT_STRUCTURE.md](.agents/PROJECT_STRUCTURE.md)。
+- 产品页面、交互与视觉规范见 [.agents/PRODUCT_DESIGN.md](.agents/PRODUCT_DESIGN.md)。
+- AI 或开发者修改代码前必须阅读根目录的 [AGENTS.md](AGENTS.md) 与 [.agents/AI_DEVELOPMENT.md](.agents/AI_DEVELOPMENT.md)。
+- 项目采用 Nuxt 4，不创建并行的 Vue/Vite SPA，也不擅自引入功能重复的第三方库。

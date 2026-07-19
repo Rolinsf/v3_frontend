@@ -2,14 +2,24 @@
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
-    '@nuxt/ui'
+    '@nuxt/ui',
+    '@pinia/nuxt',
+    '@vueuse/nuxt'
   ],
 
   devtools: {
     enabled: true
   },
 
-  css: ['~/assets/css/main.css'],
+  css: ['~/assets/css/main.css', '~/assets/css/reader.css'],
+
+  runtimeConfig: {
+    sessionSecret: '',
+    public: {
+      siteUrl: 'http://localhost:3000',
+      apiBase: '/api'
+    }
+  },
 
   routeRules: {
     '/': { prerender: true }
@@ -24,5 +34,9 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
+  },
+
+  fonts: {
+    provider: 'local'
   }
 })
