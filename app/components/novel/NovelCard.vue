@@ -10,7 +10,7 @@ defineProps<{ novel: NovelSummary }>()
       :to="`/novels/${novel.id}`"
       class="novel-card__cover-link"
     >
-      <NovelNovelCover
+      <NovelCover
         :title="novel.title"
         :tone="novel.coverTone"
       />

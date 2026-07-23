@@ -67,7 +67,7 @@ useSeoMeta({
             v-else
             class="profile-work-grid"
           >
-            <NovelNovelCard
+            <NovelCard
               v-for="novel in works"
               :key="novel.id"
               :novel="novel"

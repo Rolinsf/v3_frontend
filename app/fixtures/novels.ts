@@ -179,7 +179,7 @@ export const categoryTree: Category[] = [
     name: '悬疑',
     slug: 'mystery',
     description: '迷雾、线索与未解之谜。',
-    icon: 'i-lucide-magnifying-glass',
+    icon: 'i-lucide-search',
     enabled: true,
     novelCount: 7,
     children: [

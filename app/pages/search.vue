@@ -246,7 +246,7 @@ const hasQuery = computed(() => committedKeyword.value.trim().length > 0)
             v-if="novels && novels.length"
             class="novel-grid search-grid"
           >
-            <NovelNovelCard
+            <NovelCard
               v-for="novel in novels"
               :key="novel.id"
               :novel="novel"

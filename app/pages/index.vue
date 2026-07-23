@@ -273,7 +273,7 @@ function formatReadAt(iso: string) {
                 class="featured-note__content"
                 @click="guardRecommendationLink"
               >
-                <NovelNovelCover
+                <NovelCover
                   :title="activeRecommendation.title"
                   :tone="activeRecommendation.coverTone"
                 />
@@ -410,7 +410,7 @@ function formatReadAt(iso: string) {
           v-else
           class="novel-grid"
         >
-          <NovelNovelCard
+          <NovelCard
             v-for="novel in featuredNovels"
             :key="novel.id"
             :novel="novel"
@@ -445,7 +445,7 @@ function formatReadAt(iso: string) {
           v-else
           class="update-list"
         >
-          <NovelNovelCompactItem
+          <NovelCompactItem
             v-for="novel in recentNovels"
             :key="novel.id"
             :novel="novel"
@@ -466,7 +466,7 @@ function formatReadAt(iso: string) {
           v-if="debutNovels.length"
           class="novel-grid"
         >
-          <NovelNovelCard
+          <NovelCard
             v-for="novel in debutNovels"
             :key="novel.id"
             :novel="novel"

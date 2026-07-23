@@ -292,7 +292,7 @@ const mobileFilterOpen = ref(false)
             v-else-if="novels && novels.length"
             class="novel-grid library-grid"
           >
-            <NovelNovelCard
+            <NovelCard
               v-for="novel in novels"
               :key="novel.id"
               :novel="novel"

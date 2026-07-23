@@ -124,7 +124,7 @@ function formatDate(iso: string) {
               :to="`/novels/${novel.id}`"
               class="ranking-item__cover"
             >
-              <NovelNovelCover
+              <NovelCover
                 :title="novel.title"
                 :tone="novel.coverTone"
               />

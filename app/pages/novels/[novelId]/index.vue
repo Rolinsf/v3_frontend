@@ -66,7 +66,7 @@ const totalChapters = computed(() => novel.value?.volumes.reduce((sum, volume) =
         </nav>
 
         <section class="novel-detail-hero">
-          <NovelNovelCover
+          <NovelCover
             :title="novel.title"
             :tone="novel.coverTone"
           />

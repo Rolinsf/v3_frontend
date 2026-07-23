@@ -1,7 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
 const auth = useAuthStore()
-const community = useComments()
 const admin = useAdmin()
 const searchQuery = ref('')
 const announcementOpen = ref(false)
@@ -77,14 +76,6 @@ function avatarLabel() {
           class="desktop-action"
           @click="announcementOpen = true"
         />
-        <UButton
-          to="/creator"
-          label="创作中心"
-          icon="i-lucide-pen-line"
-          color="neutral"
-          variant="ghost"
-          class="desktop-action"
-        />
         <UColorModeButton
           color="neutral"
           variant="ghost"
@@ -106,33 +97,13 @@ function avatarLabel() {
             class="site-header__user"
           >
             <NuxtLink
-              to="/bookshelf"
+              to="/account?section=reading"
               class="site-header__user-link"
               :aria-label="`已登录：${auth.user?.name}，进入书架`"
             >
               <span class="site-header__avatar">{{ avatarLabel() }}</span>
               <span class="site-header__user-name">{{ auth.user?.name }}</span>
             </NuxtLink>
-            <UButton
-              to="/account/comments"
-              color="neutral"
-              variant="ghost"
-              icon="i-lucide-message-circle"
-              aria-label="我的评论"
-            />
-            <UChip
-              :show="community.unreadCount.value > 0"
-              color="primary"
-              inset
-            >
-              <UButton
-                to="/notifications"
-                color="neutral"
-                variant="ghost"
-                icon="i-lucide-bell"
-                aria-label="通知中心"
-              />
-            </UChip>
             <UButton
               color="neutral"
               variant="ghost"

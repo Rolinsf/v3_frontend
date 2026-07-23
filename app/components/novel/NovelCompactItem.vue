@@ -14,7 +14,7 @@ function formatDate(value: string) {
 
 <template>
   <article class="novel-compact-item">
-    <NovelNovelCover
+    <NovelCover
       :title="novel.title"
       :tone="novel.coverTone"
     />

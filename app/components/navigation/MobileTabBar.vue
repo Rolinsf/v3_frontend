@@ -3,8 +3,8 @@ const route = useRoute()
 const items = [
   { label: '首页', icon: 'i-lucide-house', to: '/' },
   { label: '书库', icon: 'i-lucide-library', to: '/novels' },
-  { label: '书架', icon: 'i-lucide-bookmark', to: '/bookshelf' },
-  { label: '创作', icon: 'i-lucide-pen-line', to: '/creator' },
+  { label: '书架', icon: 'i-lucide-bookmark', to: '/account?section=reading' },
+  { label: '创作', icon: 'i-lucide-pen-line', to: '/account?section=works' },
   { label: '我的', icon: 'i-lucide-user', to: '/account' }
 ]
 </script>
