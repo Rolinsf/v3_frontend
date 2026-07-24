@@ -2,8 +2,12 @@
 /* eslint-disable @stylistic/max-statements-per-line */
 definePageMeta({ layout: 'creator', middleware: ['auth'] }); useSeoMeta({ title: '卷章管理｜若林轻小说' })
 const route = useRoute(); const auth = useAuthStore(); const creator = useCreator(); const novelId = String(route.params.novelId); const novel = creator.getNovel(novelId, auth.user?.id ?? ''); const volumeTitle = ref('')
+const draggedChapterId = ref('')
 function addVolume() { if (!auth.user || !volumeTitle.value.trim()) return; creator.addVolume(novelId, auth.user.id, volumeTitle.value.trim()); volumeTitle.value = '' }
 function addChapter(volumeId: string) { if (!auth.user) return; const id = creator.addChapter(novelId, volumeId, auth.user.id); navigateTo(`/creator/novels/${novelId}/chapters/${id}/edit`) }
+function dropChapter(volumeId: string, index: number) { if (!auth.user || !draggedChapterId.value) return; creator.reorderChapter(novelId, auth.user.id, draggedChapterId.value, volumeId, index); draggedChapterId.value = '' }
+function withdraw(chapterId: string) { if (!auth.user || !window.confirm('撤回后读者将无法继续阅读该章节，确定撤回吗？')) return; creator.withdrawChapter(novelId, chapterId, auth.user.id) }
+function statusLabel(status: string) { return ({ draft: '草稿', scheduled: '定时发布', published: '已发布', withdrawn: '已撤回' })[status] ?? status }
 </script>
 
 <template>
@@ -39,6 +43,8 @@ function addChapter(volumeId: string) { if (!auth.user) return; const id = creat
           <section
             v-for="volume in novel.volumes"
             :key="volume.id"
+            @dragover.prevent
+            @drop="dropChapter(volume.id, volume.chapters.length)"
           >
             <header>
               <div><UIcon name="i-lucide-folder" /><h2>{{ volume.title }}</h2><span>{{ volume.chapters.length }} 章</span></div><UButton
@@ -52,12 +58,32 @@ function addChapter(volumeId: string) { if (!auth.user) return; const id = creat
               icon="i-lucide-file-text"
               title="这一卷还没有章节"
               description="创建一章，开始写作。"
-            /><NuxtLink
+            /><div
               v-for="(chapter, index) in volume.chapters"
               :key="chapter.id"
-              :to="`/creator/novels/${novelId}/chapters/${chapter.id}/edit`"
               class="chapter-manage-row"
-            ><span>{{ index+1 }}</span><div><strong>{{ chapter.title }}</strong><p>{{ chapter.plainText.length.toLocaleString('zh-CN') }} 字 · {{ chapter.status==='published'?'已发布':'草稿' }}</p></div><UIcon name="i-lucide-chevron-right" /></NuxtLink>
+              draggable="true"
+              @dragstart="draggedChapterId=chapter.id"
+              @dragover.prevent.stop
+              @drop.stop="dropChapter(volume.id, index)"
+            >
+              <button
+                class="drag-handle"
+                type="button"
+                aria-label="拖动章节排序"
+              >
+                <UIcon name="i-lucide-grip-vertical" />
+              </button><NuxtLink :to="`/creator/novels/${novelId}/chapters/${chapter.id}/edit`"><strong>{{ chapter.title }}</strong><p>{{ chapter.plainText.length.toLocaleString('zh-CN') }} 字 · {{ statusLabel(chapter.status) }}<template v-if="chapter.scheduledAt"> · {{ new Date(chapter.scheduledAt).toLocaleString('zh-CN') }}</template></p></NuxtLink><div class="chapter-actions">
+                <UButton
+                  v-if="chapter.status==='published'||chapter.status==='scheduled'"
+                  label="撤回"
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  @click="withdraw(chapter.id)"
+                /><UIcon name="i-lucide-chevron-right" />
+              </div>
+            </div>
           </section>
         </div>
       </template>
@@ -66,5 +92,5 @@ function addChapter(volumeId: string) { if (!auth.user) return; const id = creat
 </template>
 
 <style scoped>
-.chapter-manager{padding:2rem 0 5rem}.chapter-manager__shell{max-width:900px}.chapter-manager__shell>header{display:flex;justify-content:space-between;align-items:end;padding-bottom:1.2rem;border-bottom:1px solid var(--site-line)}.chapter-manager__shell>header a,.chapter-manager__shell>header p{color:var(--site-muted);font-size:.72rem}.chapter-manager h1{margin:.4rem 0 .2rem;font:600 2rem var(--font-reading)}.volume-add{display:flex;gap:.5rem;max-width:25rem;margin:1.5rem 0}.volume-tree{display:grid;gap:1.25rem}.volume-tree>section{overflow:hidden;border:1px solid var(--site-line);border-radius:.75rem;background:var(--site-surface)}.volume-tree>section>header{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1rem;border-bottom:1px solid var(--site-line)}.volume-tree>section>header>div{display:flex;align-items:center;gap:.5rem}.volume-tree h2{font-weight:600}.volume-tree header span{color:var(--site-muted);font-size:.7rem}.chapter-manage-row{display:grid;grid-template-columns:2rem 1fr auto;align-items:center;gap:.75rem;padding:.8rem 1rem;border-bottom:1px solid var(--site-line)}.chapter-manage-row:last-child{border:0}.chapter-manage-row>span{color:var(--site-muted);font-size:.7rem}.chapter-manage-row strong{font-size:.85rem}.chapter-manage-row p{color:var(--site-muted);font-size:.68rem}
+.chapter-manager{padding:2rem 0 5rem}.chapter-manager__shell{max-width:900px}.chapter-manager__shell>header{display:flex;justify-content:space-between;align-items:end;padding-bottom:1.2rem;border-bottom:1px solid var(--site-line)}.chapter-manager__shell>header a,.chapter-manager__shell>header p{color:var(--site-muted);font-size:.72rem}.chapter-manager h1{margin:.4rem 0 .2rem;font:600 2rem var(--font-reading)}.volume-add{display:flex;gap:.5rem;max-width:25rem;margin:1.5rem 0}.volume-tree{display:grid;gap:1.25rem}.volume-tree>section{overflow:hidden;border:1px solid var(--site-line);border-radius:.75rem;background:var(--site-surface)}.volume-tree>section>header{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1rem;border-bottom:1px solid var(--site-line)}.volume-tree>section>header>div{display:flex;align-items:center;gap:.5rem}.volume-tree h2{font-weight:600}.volume-tree header span{color:var(--site-muted);font-size:.7rem}.chapter-manage-row{display:grid;grid-template-columns:2rem 1fr auto;align-items:center;gap:.75rem;padding:.8rem 1rem;border-bottom:1px solid var(--site-line)}.chapter-manage-row:last-child{border:0}.chapter-manage-row strong{font-size:.85rem}.chapter-manage-row p{color:var(--site-muted);font-size:.68rem}.drag-handle{display:grid;place-items:center;min-width:2rem;min-height:2rem;color:var(--site-muted);cursor:grab}.chapter-actions{display:flex;align-items:center;gap:.25rem}.chapter-manage-row:active .drag-handle{cursor:grabbing}
 </style>

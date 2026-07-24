@@ -26,7 +26,7 @@ const route = useRoute(); const admin = useAdmin(); const activity = computed(()
       icon="i-lucide-files"
       title="还没有展示投稿"
       description="成为第一个参加本次活动的作者吧。"
-    /><CommentCommentSection
+    /><CommentSection
       v-if="activity"
       id="comments"
       target-type="novel"

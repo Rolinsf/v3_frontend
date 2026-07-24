@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { fontSize, lineHeight, pageWidth, theme, font } = useReader()
+const { fontSize, lineHeight, pageWidth, theme, font, autoAdvance } = useReader()
 const themes = [{ id: 'paper', label: '纸白' }, { id: 'warm', label: '暖杏' }, { id: 'green', label: '护眼' }, { id: 'night', label: '夜间' }] as const
 </script>
 
@@ -90,6 +90,12 @@ const themes = [{ id: 'paper', label: '纸白' }, { id: 'warm', label: '暖杏' 
         >
           <i />{{ item.label }}
         </button>
+      </div>
+    </div>
+    <div class="reader-setting-row reader-setting-row--switch">
+      <div>
+        <span><strong>自动进入下一章</strong><small>读到章节末尾后自动继续</small></span>
+        <USwitch v-model="autoAdvance" aria-label="自动进入下一章" />
       </div>
     </div>
   </div>

@@ -65,13 +65,20 @@ export function useNovelSearch(query: MaybeRefOrGetter<NovelSearchQuery>) {
       const q = source.value
       let list = [...novelSummaries]
       // 关键词：在标题、作者名、标签名里做大小写不敏感的包含匹配。
-      const keyword = q.q?.trim().toLowerCase()
-      if (keyword) {
-        list = list.filter(n =>
-          n.title.toLowerCase().includes(keyword)
-          || n.author.name.toLowerCase().includes(keyword)
-          || n.tags.some(t => t.name.toLowerCase().includes(keyword))
-        )
+      const keywords = q.q?.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean) ?? []
+      if (keywords.length) {
+        list = list.filter((novel) => {
+          const indexText = [
+            novel.title,
+            novel.author.name,
+            novel.synopsis,
+            novel.category.primary,
+            novel.category.secondary,
+            novel.latestChapter.title,
+            ...novel.tags.map(tag => tag.name)
+          ].join(' ').toLocaleLowerCase()
+          return keywords.every(keyword => indexText.includes(keyword))
+        })
       }
       // 一级分类：按 slug 翻译为中文名再匹配。
       if (q.category) {

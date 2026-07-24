@@ -13,6 +13,10 @@ export const chapterDraftSchema = z.object({
   plainText: z.string().trim().min(20, '正文至少 20 个字。')
 })
 
+export const schedulePublishSchema = z.object({
+  scheduledAt: z.string().refine(value => new Date(value).getTime() > Date.now(), '定时发布时间必须晚于现在。')
+})
+
 export function schemaErrors(error: z.ZodError) {
   return Object.fromEntries(error.issues.map(issue => [String(issue.path[0] ?? 'form'), issue.message]))
 }

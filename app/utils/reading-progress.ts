@@ -1,4 +1,4 @@
-import type { ProgressMap } from '~/composables/useReadingProgress'
+import type { ProgressMap } from '~/stores/reading-progress'
 import type { ReadingProgress } from '~/types/reader'
 
 function mergeEntry(local: ReadingProgress | undefined, remote: ReadingProgress | undefined) {

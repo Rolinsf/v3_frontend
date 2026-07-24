@@ -1,8 +1,8 @@
 export function useCreator() {
   const store = useCreatorStore()
-  const { novels, drafts, initialized } = storeToRefs(store)
+  const { novels, drafts, versions, initialized } = storeToRefs(store)
   return {
-    novels, drafts, initialized,
+    novels, drafts, versions, initialized,
     initialize: store.initialize,
     ownedNovels: store.ownedNovels,
     getNovel: store.getNovel,
@@ -10,6 +10,9 @@ export function useCreator() {
     addVolume: store.addVolume,
     addChapter: store.addChapter,
     saveDraft: store.saveDraft,
-    publishChapter: store.publishChapter
+    publishChapter: store.publishChapter,
+    withdrawChapter: store.withdrawChapter,
+    reorderChapter: store.reorderChapter,
+    getVersions: store.getVersions
   }
 }

@@ -8,6 +8,7 @@ export const useReaderStore = defineStore('reader', () => {
   const pageWidth = ref(DEFAULT_READER_SETTINGS.pageWidth)
   const theme = ref<ReaderTheme>(DEFAULT_READER_SETTINGS.theme)
   const font = ref<ReaderFont>(DEFAULT_READER_SETTINGS.font)
+  const autoAdvance = ref(DEFAULT_READER_SETTINGS.autoAdvance)
   const initialized = ref(false)
 
   const readerStyle = computed(() => ({
@@ -27,6 +28,7 @@ export const useReaderStore = defineStore('reader', () => {
         pageWidth.value = saved.pageWidth ?? pageWidth.value
         theme.value = saved.theme ?? theme.value
         font.value = saved.font ?? font.value
+        autoAdvance.value = saved.autoAdvance ?? autoAdvance.value
       }
     } catch {
       // 损坏的阅读设置使用默认值。
@@ -41,7 +43,8 @@ export const useReaderStore = defineStore('reader', () => {
       lineHeight: lineHeight.value,
       pageWidth: pageWidth.value,
       theme: theme.value,
-      font: font.value
+      font: font.value,
+      autoAdvance: autoAdvance.value
     }
     try {
       localStorage.setItem(READER_SETTINGS_STORAGE_KEY, JSON.stringify(settings))
@@ -50,5 +53,5 @@ export const useReaderStore = defineStore('reader', () => {
     }
   }
 
-  return { fontSize, lineHeight, pageWidth, theme, font, initialized, readerStyle, initialize, persist }
+  return { fontSize, lineHeight, pageWidth, theme, font, autoAdvance, initialized, readerStyle, initialize, persist }
 })

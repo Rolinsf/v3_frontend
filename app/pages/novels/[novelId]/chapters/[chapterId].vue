@@ -8,8 +8,14 @@ const chapterId = computed(() => String(route.params.chapterId))
 const { data: chapter, error, refresh } = useChapter(novelId, chapterId)
 // 章节目录：从作品详情派生，替换原页面散落的硬编码列表。
 const { data: novel } = useNovelDetail(novelId)
-const { saveProgress } = useReadingProgress()
+const following = useFollowingStore()
+const { isChapterRead } = useReadingProgress()
 const config = useRuntimeConfig()
+const toast = useToast()
+
+watch(novel, (value) => {
+  if (value) following.markUpdateSeen(value.id, value.updatedAt)
+}, { immediate: true })
 
 // useChapter 在未命中时已抛 createError(404)；这里只在 SEO 和页面状态层处理。
 useSeoMeta({
@@ -25,29 +31,24 @@ useSeoMeta({
 const settingsOpen = ref(false)
 const catalogOpen = ref(false)
 const toolbarVisible = ref(true)
-const { theme, font, readerStyle } = useReader()
-
-// 扁平化章节列表，供目录抽屉与键盘翻页使用。
-const flatChapters = computed(() => {
-  if (!novel.value) return []
-  return novel.value.volumes.flatMap(volume => volume.chapters)
+const { theme, font, autoAdvance, readerStyle } = useReader()
+const { contentElement, readingRatio, resumeRatio, resumeNoticeVisible, previousChapterId, nextChapterId, scrollToRatio } = useChapterReading({
+  chapter,
+  novel,
+  novelId,
+  chapterId,
+  autoAdvance
 })
 
-const currentIndex = computed(() => flatChapters.value.findIndex(c => c.id === chapterId.value))
-const previousChapterId = computed(() => currentIndex.value > 0 ? flatChapters.value[currentIndex.value - 1]?.id : undefined)
-const nextChapterId = computed(() => {
-  const next = flatChapters.value[currentIndex.value + 1]
-  return next?.id
-})
-
-function handleKeydown(event: KeyboardEvent) {
-  const target = event.target as HTMLElement | null
-  if (target?.matches('input, textarea, [contenteditable="true"]')) return
-  if (event.key === 'ArrowLeft' && previousChapterId.value) {
-    navigateTo(`/novels/${novelId.value}/chapters/${previousChapterId.value}`)
-  }
-  if (event.key === 'ArrowRight' && nextChapterId.value) {
-    navigateTo(`/novels/${novelId.value}/chapters/${nextChapterId.value}`)
+async function copyChapter() {
+  if (!chapter.value) return
+  const selected = window.getSelection()?.toString().trim()
+  const text = selected || `${chapter.value.title}\n\n${chapter.value.paragraphs.join('\n\n')}`
+  try {
+    await navigator.clipboard.writeText(text)
+    toast.add({ title: selected ? '已复制选中文字' : '已复制本章正文', color: 'success' })
+  } catch {
+    toast.add({ title: '复制失败，请手动选择文字复制', color: 'error' })
   }
 }
 
@@ -55,23 +56,6 @@ function formatDate(iso: string) {
   const d = new Date(iso)
   return `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`
 }
-
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
-  // 访客阅读进度：进入章节时记录 novelId + chapterId 到 localStorage。
-  // 阅读位置（scrollRatio）暂记为 0，阶段 4 可在滚动时增量更新。
-  if (chapter.value) {
-    saveProgress({
-      novelId: chapter.value.novelId,
-      chapterId: chapter.value.id,
-      chapterTitle: chapter.value.title,
-      scrollRatio: 0,
-      readAt: new Date().toISOString()
-    })
-  }
-})
-
-onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
 </script>
 
 <template>
@@ -80,38 +64,48 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
     :class="[`reader-theme--${theme}`, `reader-font--${font}`]"
     :style="readerStyle"
   >
-    <header
-      class="reader-toolbar"
-      :class="{ 'is-hidden': !toolbarVisible }"
+    <div
+      class="reading-progress"
+      role="progressbar"
+      aria-label="本章阅读进度"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      :aria-valuenow="Math.round(readingRatio * 100)"
     >
-      <div class="reader-toolbar__inner">
-        <UButton
-          :to="`/novels/${novelId}`"
-          icon="i-lucide-arrow-left"
-          color="neutral"
-          variant="ghost"
-          :label="chapter?.novelTitle ?? '返回作品'"
-          class="reader-toolbar__back"
-        />
-        <p>{{ chapter?.title }}</p>
-        <div>
-          <UButton
-            icon="i-lucide-list"
-            color="neutral"
-            variant="ghost"
-            aria-label="章节目录"
-            @click="catalogOpen = true"
-          />
-          <UButton
-            icon="i-lucide-settings-2"
-            color="neutral"
-            variant="ghost"
-            aria-label="阅读设置"
-            @click="settingsOpen = true"
-          />
-        </div>
-      </div>
-    </header>
+      <i :style="{ width: `${readingRatio * 100}%` }" />
+    </div>
+    <ReaderToolbar
+      :novel-id="novelId"
+      :title="chapter?.title"
+      :novel-title="chapter?.novelTitle"
+      :visible="toolbarVisible"
+      :progress="readingRatio"
+      :previous="previousChapterId"
+      :next="nextChapterId"
+      @catalog="catalogOpen = true"
+      @settings="settingsOpen = true"
+      @copy="copyChapter"
+    />
+    <div
+      v-if="resumeNoticeVisible"
+      class="reader-resume-notice"
+      role="status"
+    >
+      <span>已回到上次位置 · {{ Math.round(resumeRatio * 100) }}%</span>
+      <button
+        type="button"
+        @click="scrollToRatio(0)"
+      >
+        回到开头
+      </button>
+      <button
+        type="button"
+        aria-label="关闭提示"
+        @click="resumeNoticeVisible = false"
+      >
+        ×
+      </button>
+    </div>
 
     <main
       class="reader-main"
@@ -133,7 +127,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
             <time :datetime="chapter.publishedAt">发布于 {{ formatDate(chapter.publishedAt) }}</time><span>·</span><span>{{ chapter.wordCount.toLocaleString('zh-CN') }} 字</span>
           </p>
         </header>
-        <div class="reader-content">
+        <div
+          ref="contentElement"
+          class="reader-content"
+        >
           <p
             v-for="(paragraph, index) in chapter.paragraphs"
             :key="index"
@@ -147,7 +144,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
         >
           <p>作者的话</p><div>{{ chapter.authorNote }}</div>
         </aside>
-        <CommentCommentSection
+        <CommentSection
           target-type="chapter"
           :target-id="chapter.id"
           :novel-id="chapter.novelId"
@@ -190,7 +187,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
       description="调整后的设置会保存在当前浏览器。"
     >
       <template #body>
-        <ReaderReaderSettings />
+        <ReaderSettings />
       </template>
     </USlideover>
     <USlideover
@@ -208,9 +205,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
               v-for="item in volume.chapters"
               :key="item.id"
               :to="`/novels/${novelId}/chapters/${item.id}`"
-              :class="{ 'is-active': item.id === chapterId }"
+              :class="{ 'is-active': item.id === chapterId, 'is-read': isChapterRead(novelId, item.id) }"
+              :aria-current="item.id === chapterId ? 'location' : undefined"
               @click="catalogOpen = false"
-            >{{ item.title }}</NuxtLink>
+            ><span>{{ item.title }}</span><small v-if="item.id === chapterId">当前位置</small><small v-else-if="isChapterRead(novelId, item.id)">已读</small></NuxtLink>
           </template>
         </div>
       </template>

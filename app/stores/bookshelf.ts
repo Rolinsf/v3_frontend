@@ -57,5 +57,23 @@ export const useBookshelfStore = defineStore('bookshelf', () => {
     persist()
   }
 
-  return { items, initialized, initialize, getStatus, add, updateStatus, remove }
+  function removeMany(novelIds: string[]) {
+    const ids = new Set(novelIds)
+    items.value = items.value.filter(item => !ids.has(item.novelId))
+    persist()
+  }
+
+  function updateMany(novelIds: string[], status: BookshelfStatus) {
+    const ids = new Set(novelIds)
+    const now = new Date().toISOString()
+    items.value = items.value.map(item => ids.has(item.novelId) ? { ...item, status, updatedAt: now } : item)
+    persist()
+  }
+
+  function replaceAll(nextItems: BookshelfItem[]) {
+    items.value = [...nextItems]
+    persist()
+  }
+
+  return { items, initialized, initialize, getStatus, add, updateStatus, remove, removeMany, updateMany, replaceAll }
 })

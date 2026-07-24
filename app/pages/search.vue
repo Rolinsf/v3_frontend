@@ -1,124 +1,26 @@
 <script setup lang="ts">
-import type { NovelSearchQuery } from '~/composables/useNovels'
+import { publicUsers } from '~/fixtures/users'
 
 useSeoMeta({
   title: '搜索｜若林轻小说',
   description: '搜索若林轻小说的作品、作者和标签。'
 })
 
-const route = useRoute()
-const router = useRouter()
-
 const { data: categories } = useCategoryTree()
-
-const keyword = ref<string>((route.query.q as string) || '')
-const committedKeyword = ref<string>(keyword.value)
-const selectedCategory = ref<string>((route.query.category as string) || '')
-const selectedSubcategory = ref<string>((route.query.subcategory as string) || '')
-const activeTab = ref<'novels' | 'users'>((route.query.tab as 'novels' | 'users') || 'novels')
-
-// 输入防抖：300ms 后把 keyword 提交到 committedKeyword；Enter 时跳过防抖。
-let debounceTimer: ReturnType<typeof setTimeout> | null = null
-watch(keyword, (value) => {
-  if (debounceTimer) clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => {
-    committedKeyword.value = value
-  }, 300)
-})
-
-function commitNow() {
-  if (debounceTimer) clearTimeout(debounceTimer)
-  committedKeyword.value = keyword.value
-}
-
-// 提交时同步 URL 并写入历史。
-watch(committedKeyword, (value) => {
-  syncUrl()
-  if (value.trim()) pushHistory(value.trim())
-})
-
-function syncUrl() {
-  const query: Record<string, string> = {}
-  if (committedKeyword.value) query.q = committedKeyword.value
-  if (selectedCategory.value) query.category = selectedCategory.value
-  if (selectedSubcategory.value) query.subcategory = selectedSubcategory.value
-  if (activeTab.value !== 'novels') query.tab = activeTab.value
-  router.replace({ query })
-}
-
-watch([selectedCategory, selectedSubcategory, activeTab], syncUrl)
-
-const currentCategory = computed(() =>
-  categories.value?.find(c => c.slug === selectedCategory.value)
-)
-watch(selectedCategory, () => {
-  const stillValid = currentCategory.value?.children.some(c => c.slug === selectedSubcategory.value)
-  if (selectedSubcategory.value && !stillValid) selectedSubcategory.value = ''
-})
-
-const query = computed<NovelSearchQuery>(() => ({
-  q: committedKeyword.value || undefined,
-  category: selectedCategory.value || undefined,
-  subcategory: selectedSubcategory.value || undefined,
-  sort: 'updated'
-}))
+const { keyword, selectedCategory, selectedSubcategory, activeTab, currentCategory, query, hasQuery, searchHistory, commitNow, clearHistory, applyTerm } = useSearchQuery(categories)
 
 const { data: novels, pending, error, refresh } = useNovelSearch(query)
 
-const HISTORY_KEY = 'wakabayashi-search-history'
-const HISTORY_MAX = 10
-const searchHistory = ref<string[]>([])
-
-function loadHistory(): string[] {
-  if (!import.meta.client) return []
-  try {
-    const raw = localStorage.getItem(HISTORY_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    if (Array.isArray(parsed)) {
-      return parsed.filter(x => typeof x === 'string').slice(0, HISTORY_MAX)
-    }
-  } catch {
-    // 损坏数据忽略。
-  }
-  return []
-}
-
-function pushHistory(term: string) {
-  if (!import.meta.client) return
-  const next = [term, ...searchHistory.value.filter(x => x !== term)].slice(0, HISTORY_MAX)
-  searchHistory.value = next
-  try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(next))
-  } catch {
-    // 容量超限静默失败。
-  }
-}
-
-function clearHistory() {
-  searchHistory.value = []
-  if (import.meta.client) {
-    try {
-      localStorage.removeItem(HISTORY_KEY)
-    } catch {
-      // 忽略。
-    }
-  }
-}
-
-onMounted(() => {
-  searchHistory.value = loadHistory()
-})
-
 // 热门建议：从 fixtures 标题/标签中派生，不泄露其他用户行为。
 const hotSuggestions = ['雨季', '咖啡馆', '银河', '灯', '信']
-
-function applyTerm(term: string) {
-  keyword.value = term
-  commitNow()
-}
-
-const hasQuery = computed(() => committedKeyword.value.trim().length > 0)
+const matchedUsers = computed(() => {
+  const terms = keyword.value.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean)
+  if (!terms.length) return publicUsers
+  return publicUsers.filter((user) => {
+    const text = `${user.name} ${user.bio ?? ''} ${user.role}`.toLocaleLowerCase()
+    return terms.every(term => text.includes(term))
+  })
+})
 </script>
 
 <template>
@@ -242,16 +144,11 @@ const hasQuery = computed(() => committedKeyword.value.trim().length > 0)
           >
             找到 {{ novels.length }} 部相关作品
           </p>
-          <div
+          <NovelSearchResults
             v-if="novels && novels.length"
-            class="novel-grid search-grid"
-          >
-            <NovelCard
-              v-for="novel in novels"
-              :key="novel.id"
-              :novel="novel"
-            />
-          </div>
+            :novels="novels"
+            :query="keyword"
+          />
           <EmptyState
             v-else
             icon="i-lucide-search-x"
@@ -260,61 +157,19 @@ const hasQuery = computed(() => committedKeyword.value.trim().length > 0)
           />
         </template>
 
-        <section
+        <SearchSuggestions
           v-else
-          class="search-suggest"
-        >
-          <div
-            v-if="searchHistory.length"
-            class="search-suggest-block"
-          >
-            <div class="search-suggest-block__head">
-              <h2>最近搜索</h2>
-              <button
-                type="button"
-                class="search-suggest-clear"
-                @click="clearHistory"
-              >
-                清除
-              </button>
-            </div>
-            <div class="search-suggest-chips">
-              <button
-                v-for="term in searchHistory"
-                :key="term"
-                type="button"
-                class="search-suggest-chip"
-                @click="applyTerm(term)"
-              >
-                {{ term }}
-              </button>
-            </div>
-          </div>
-          <div class="search-suggest-block">
-            <h2>热门建议</h2>
-            <p class="search-suggest-hint">
-              这里只展示一些常被搜索的词，不会记录任何用户的个人搜索行为。
-            </p>
-            <div class="search-suggest-chips">
-              <button
-                v-for="term in hotSuggestions"
-                :key="term"
-                type="button"
-                class="search-suggest-chip search-suggest-chip--hot"
-                @click="applyTerm(term)"
-              >
-                {{ term }}
-              </button>
-            </div>
-          </div>
-        </section>
+          :history="searchHistory"
+          :hot="hotSuggestions"
+          @select="applyTerm"
+          @clear="clearHistory"
+        />
       </template>
 
-      <EmptyState
+      <UserSearchResults
         v-else
-        icon="i-lucide-user-search"
-        title="用户搜索暂未开放"
-        description="目前先专注于作品发现；用户公开主页可以在阶段 4 后期通过作者入口到达。"
+        :users="matchedUsers"
+        :query="keyword"
       />
     </div>
   </div>

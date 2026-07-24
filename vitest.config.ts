@@ -1,9 +1,33 @@
-import { defineVitestConfig } from '@nuxt/test-utils/config'
+import { fileURLToPath } from 'node:url'
+import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vitest/config'
 
-export default defineVitestConfig({
+export default defineConfig({
+  plugins: [vue({
+    template: {
+      compilerOptions: {
+        isCustomElement: tag => tag === 'NuxtLink' || tag === 'UIcon'
+      }
+    }
+  })],
+  resolve: {
+    alias: {
+      '~': fileURLToPath(new URL('./app', import.meta.url)),
+      '@': fileURLToPath(new URL('./app', import.meta.url))
+    }
+  },
   test: {
-    environment: 'nuxt',
-    hookTimeout: 120000,
-    include: ['tests/unit/**/*.{test,spec}.?(c|m)[jt]s?(x)', 'tests/nuxt/**/*.{test,spec}.?(c|m)[jt]s?(x)']
+    environment: 'node',
+    include: [
+      'tests/unit/**/*.{test,spec}.?(c|m)[jt]s?(x)',
+      'tests/components/**/*.{test,spec}.?(c|m)[jt]s?(x)'
+    ],
+    exclude: ['tests/e2e/**', 'tests/nuxt/**'],
+    pool: 'forks',
+    maxWorkers: 1,
+    fileParallelism: false,
+    testTimeout: 10000,
+    hookTimeout: 10000,
+    teardownTimeout: 5000
   }
 })

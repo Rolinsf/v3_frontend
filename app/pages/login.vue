@@ -45,6 +45,16 @@ const registerState = reactive({
   agree: false
 })
 
+type AuthFieldKey = 'identifier' | 'password' | 'agree' | 'name' | 'confirmPassword'
+
+function updateLoginField(key: AuthFieldKey, value: string | boolean) {
+  Object.assign(loginState, { [key]: value })
+}
+
+function updateRegisterField(key: AuthFieldKey, value: string | boolean) {
+  Object.assign(registerState, { [key]: value })
+}
+
 // 字段级错误：以 Zod Schema 校验失败时填充，提交成功后清空。
 const fieldErrors = ref<Record<string, string>>({})
 // 表单级错误：用于网络失败等无法归因到字段的情况。
@@ -175,225 +185,24 @@ function switchMode(value: AuthMode) {
         {{ formError }}
       </p>
 
-      <!-- 登录表单 -->
-      <form
+      <AuthFieldsForm
         v-if="mode === 'login'"
-        class="auth-form"
-        novalidate
-        @submit.prevent="handleLogin"
-      >
-        <div
-          class="auth-field"
-          data-field="identifier"
-        >
-          <label for="login-identifier">邮箱或手机号</label>
-          <UInput
-            id="login-identifier"
-            v-model="loginState.identifier"
-            name="identifier"
-            type="text"
-            autocomplete="username"
-            placeholder="name@example.com 或 138…"
-            :color="fieldErrors.identifier ? 'error' : 'neutral'"
-            class="auth-field__input"
-          />
-          <p
-            v-if="fieldErrors.identifier"
-            class="auth-field__error"
-          >
-            {{ fieldErrors.identifier }}
-          </p>
-        </div>
-
-        <div
-          class="auth-field"
-          data-field="password"
-        >
-          <label for="login-password">密码</label>
-          <UInput
-            id="login-password"
-            v-model="loginState.password"
-            name="password"
-            type="password"
-            autocomplete="current-password"
-            placeholder="至少 8 位，含字母与数字"
-            :color="fieldErrors.password ? 'error' : 'neutral'"
-            class="auth-field__input"
-          />
-          <p
-            v-if="fieldErrors.password"
-            class="auth-field__error"
-          >
-            {{ fieldErrors.password }}
-          </p>
-        </div>
-
-        <label class="auth-agree">
-          <UCheckbox
-            v-model="loginState.agree"
-            name="agree"
-          />
-          <span>
-            我已阅读并同意
-            <NuxtLink
-              to="/terms"
-              class="auth-link"
-            >用户协议</NuxtLink>
-            与
-            <NuxtLink
-              to="/privacy"
-              class="auth-link"
-            >隐私政策</NuxtLink>
-          </span>
-        </label>
-        <p
-          v-if="fieldErrors.agree"
-          class="auth-field__error"
-        >
-          {{ fieldErrors.agree }}
-        </p>
-
-        <UButton
-          type="submit"
-          block
-          :loading="auth.pending"
-          label="登录"
-          class="auth-submit"
-        />
-      </form>
-
-      <!-- 注册表单 -->
-      <form
+        mode="login"
+        :state="loginState"
+        :errors="fieldErrors"
+        :pending="auth.pending"
+        :update="updateLoginField"
+        @submit="handleLogin"
+      />
+      <AuthFieldsForm
         v-else
-        class="auth-form"
-        novalidate
-        @submit.prevent="handleRegister"
-      >
-        <div
-          class="auth-field"
-          data-field="identifier"
-        >
-          <label for="register-identifier">邮箱或手机号</label>
-          <UInput
-            id="register-identifier"
-            v-model="registerState.identifier"
-            name="identifier"
-            type="text"
-            autocomplete="username"
-            placeholder="name@example.com 或 138…"
-            :color="fieldErrors.identifier ? 'error' : 'neutral'"
-            class="auth-field__input"
-          />
-          <p
-            v-if="fieldErrors.identifier"
-            class="auth-field__error"
-          >
-            {{ fieldErrors.identifier }}
-          </p>
-        </div>
-
-        <div
-          class="auth-field"
-          data-field="name"
-        >
-          <label for="register-name">昵称</label>
-          <UInput
-            id="register-name"
-            v-model="registerState.name"
-            name="name"
-            type="text"
-            autocomplete="nickname"
-            placeholder="2-20 个字符"
-            :color="fieldErrors.name ? 'error' : 'neutral'"
-            class="auth-field__input"
-          />
-          <p
-            v-if="fieldErrors.name"
-            class="auth-field__error"
-          >
-            {{ fieldErrors.name }}
-          </p>
-        </div>
-
-        <div
-          class="auth-field"
-          data-field="password"
-        >
-          <label for="register-password">密码</label>
-          <UInput
-            id="register-password"
-            v-model="registerState.password"
-            name="password"
-            type="password"
-            autocomplete="new-password"
-            placeholder="至少 8 位，含字母与数字"
-            :color="fieldErrors.password ? 'error' : 'neutral'"
-            class="auth-field__input"
-          />
-          <p
-            v-if="fieldErrors.password"
-            class="auth-field__error"
-          >
-            {{ fieldErrors.password }}
-          </p>
-        </div>
-
-        <div
-          class="auth-field"
-          data-field="confirmPassword"
-        >
-          <label for="register-confirm">确认密码</label>
-          <UInput
-            id="register-confirm"
-            v-model="registerState.confirmPassword"
-            name="confirmPassword"
-            type="password"
-            autocomplete="new-password"
-            placeholder="再输入一次密码"
-            :color="fieldErrors.confirmPassword ? 'error' : 'neutral'"
-            class="auth-field__input"
-          />
-          <p
-            v-if="fieldErrors.confirmPassword"
-            class="auth-field__error"
-          >
-            {{ fieldErrors.confirmPassword }}
-          </p>
-        </div>
-
-        <label class="auth-agree">
-          <UCheckbox
-            v-model="registerState.agree"
-            name="agree"
-          />
-          <span>
-            我已阅读并同意
-            <NuxtLink
-              to="/terms"
-              class="auth-link"
-            >用户协议</NuxtLink>
-            与
-            <NuxtLink
-              to="/privacy"
-              class="auth-link"
-            >隐私政策</NuxtLink>
-          </span>
-        </label>
-        <p
-          v-if="fieldErrors.agree"
-          class="auth-field__error"
-        >
-          {{ fieldErrors.agree }}
-        </p>
-
-        <UButton
-          type="submit"
-          block
-          :loading="auth.pending"
-          label="注册并登录"
-          class="auth-submit"
-        />
-      </form>
+        mode="register"
+        :state="registerState"
+        :errors="fieldErrors"
+        :pending="auth.pending"
+        :update="updateRegisterField"
+        @submit="handleRegister"
+      />
 
       <p class="auth-footnote">
         若林不会未经同意向第三方分享你的阅读记录。

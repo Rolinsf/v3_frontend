@@ -6,7 +6,9 @@ const { data: novel, error, refresh } = useNovelDetail(novelId)
 // 已读状态：访客在本地 localStorage；阶段 4 登录后会与服务端进度合并。
 const { isChapterRead } = useReadingProgress()
 const { getStatus: getBookshelfStatus, add: addToBookshelf, remove: removeFromBookshelf } = useBookshelf()
+const following = useFollowingStore()
 const bookshelfStatus = computed(() => getBookshelfStatus(novelId.value))
+const updateNotificationsEnabled = computed(() => following.getNovelPreference(novelId.value)?.notificationsEnabled ?? false)
 
 function toggleBookshelf() {
   if (!auth.user) {
@@ -18,11 +20,24 @@ function toggleBookshelf() {
   else addToBookshelf(novelId.value, 'reading')
 }
 
+function toggleUpdateNotifications() {
+  if (!auth.user) {
+    auth.saveIntent({ redirect: route.fullPath, action: 'novel-updates', targetId: novelId.value })
+    navigateTo({ path: '/login', query: { redirect: route.fullPath } })
+    return
+  }
+  following.setNovelNotifications(novelId.value, !updateNotificationsEnabled.value, novel.value?.updatedAt)
+}
+
 onMounted(() => {
   const intent = auth.peekResumedIntent()
   if (intent?.action === 'bookshelf' && intent.targetId === novelId.value) {
     auth.clearResumedIntent()
     if (!bookshelfStatus.value) addToBookshelf(novelId.value, 'reading')
+  }
+  if (intent?.action === 'novel-updates' && intent.targetId === novelId.value) {
+    auth.clearResumedIntent()
+    following.setNovelNotifications(novelId.value, true, novel.value?.updatedAt)
   }
 })
 
@@ -117,6 +132,13 @@ const totalChapters = computed(() => novel.value?.volumes.reduce((sum, volume) =
                 @click="toggleBookshelf"
               />
               <UButton
+                :label="updateNotificationsEnabled ? '已开启追更' : '开启追更'"
+                :icon="updateNotificationsEnabled ? 'i-lucide-bell-ring' : 'i-lucide-bell'"
+                color="neutral"
+                variant="ghost"
+                @click="toggleUpdateNotifications"
+              />
+              <UButton
                 icon="i-lucide-share-2"
                 size="lg"
                 color="neutral"
@@ -195,7 +217,7 @@ const totalChapters = computed(() => novel.value?.volumes.reduce((sum, volume) =
           </div>
         </section>
 
-        <CommentCommentSection
+        <CommentSection
           target-type="novel"
           :target-id="novel.id"
           title="作品评论"

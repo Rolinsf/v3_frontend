@@ -1,7 +1,7 @@
 import type { JSONContent } from '@tiptap/vue-3'
 
 export type CreatorNovelStatus = 'draft' | 'serializing' | 'completed'
-export type CreatorChapterStatus = 'draft' | 'published'
+export type CreatorChapterStatus = 'draft' | 'scheduled' | 'published' | 'withdrawn'
 
 export interface CreatorChapter {
   id: string
@@ -12,6 +12,8 @@ export interface CreatorChapter {
   status: CreatorChapterStatus
   updatedAt: string
   publishedAt?: string
+  scheduledAt?: string
+  withdrawnAt?: string
 }
 
 export interface CreatorVolume {
@@ -44,4 +46,9 @@ export interface ChapterDraft {
   plainText: string
   authorNote: string
   savedAt: string
+}
+
+export interface ChapterVersion extends ChapterDraft {
+  id: string
+  reason: 'autosave' | 'manual' | 'publish' | 'withdraw'
 }

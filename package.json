@@ -10,11 +10,15 @@
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:nuxt": "vitest run --config vitest.nuxt.config.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.117",
+    "@nuxt/image": "^2.0.0",
     "@nuxt/ui": "^4.10.0",
+    "@nuxtjs/seo": "^5.3.3",
     "@pinia/nuxt": "^1.0.1",
     "@tiptap/extension-image": "^3.28.0",
     "@tiptap/extension-placeholder": "^3.28.0",
@@ -32,6 +36,8 @@
   "devDependencies": {
     "@nuxt/eslint": "^1.16.0",
     "@nuxt/test-utils": "^4.0.3",
+    "@playwright/test": "1.61.1",
+    "@vitejs/plugin-vue": "^6.0.8",
     "@vue/test-utils": "^2.4.11",
     "eslint": "^10.7.0",
     "happy-dom": "^20.10.6",

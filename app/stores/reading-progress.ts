@@ -7,7 +7,7 @@ export type SaveProgressInput = Omit<ReadingProgress, 'readChapterIds'> & { read
 
 function migrate(raw: ReadingProgress): ReadingProgress {
   const set = new Set(Array.isArray(raw.readChapterIds) ? raw.readChapterIds : [])
-  if (raw.chapterId) set.add(raw.chapterId)
+  if (!Array.isArray(raw.readChapterIds) && raw.chapterId && raw.scrollRatio >= 0.9) set.add(raw.chapterId)
   return { ...raw, readChapterIds: Array.from(set) }
 }
 
@@ -54,8 +54,11 @@ export const useReadingProgressStore = defineStore('reading-progress', () => {
   function saveProgress(progress: SaveProgressInput) {
     if (!import.meta.client) return
     const previous = progressMap.value[progress.novelId]
+    const autoMarkRead = useAccountStore().preferences.reading.autoMarkRead
     const readChapterIds = Array.from(new Set([
-      ...(previous?.readChapterIds ?? []), progress.chapterId, ...(progress.readChapterIds ?? [])
+      ...(previous?.readChapterIds ?? []),
+      ...(autoMarkRead && progress.scrollRatio >= 0.9 ? [progress.chapterId] : []),
+      ...(progress.readChapterIds ?? [])
     ]))
     progressMap.value = { ...progressMap.value, [progress.novelId]: { ...progress, readChapterIds } }
     persist()

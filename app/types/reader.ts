@@ -12,6 +12,7 @@ export interface ReaderSettings {
   pageWidth: number
   theme: ReaderTheme
   font: ReaderFont
+  autoAdvance: boolean
 }
 
 /** 阅读进度：记录用户在某章节的阅读位置，用于"继续阅读"。 */
@@ -27,7 +28,7 @@ export interface ReadingProgress {
   /**
    * 该小说下已读章节 ID 集合（去重）。
    * 用于详情页目录"已读"标记与阶段 4 的阅读历史。
-   * 旧版本数据可能缺失该字段，加载时会自动迁移为 `[]` 并补上当前 chapterId。
+   * 阅读超过 90% 时写入；旧版本数据缺失该字段时会按保存位置迁移。
    */
   readChapterIds: string[]
 }
@@ -38,7 +39,8 @@ export const DEFAULT_READER_SETTINGS: ReaderSettings = {
   lineHeight: 1.9,
   pageWidth: 760,
   theme: 'paper',
-  font: 'serif'
+  font: 'serif',
+  autoAdvance: false
 }
 
 /** localStorage 中保存阅读设置的 key。 */

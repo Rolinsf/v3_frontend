@@ -13,13 +13,6 @@ const admin = useAdmin()
 const categories = computed(() => admin.data.value.categories.filter(category => category.enabled))
 const allTags = computed(() => admin.data.value.tags.filter(tag => tag.enabled))
 
-const sortOptions: { value: NovelSort, label: string }[] = [
-  { value: 'updated', label: '最近更新' },
-  { value: 'wordCount', label: '字数最多' },
-  { value: 'debut', label: '新作优先' },
-  { value: 'latestChapter', label: '最新章节' }
-]
-
 // 当前筛选条件：从 URL query 初始化，任意变化时同步回 URL（replace 避免历史堆栈）。
 const selectedCategory = ref<string>((route.query.category as string) || '')
 const selectedSubcategory = ref<string>((route.query.subcategory as string) || '')
@@ -126,122 +119,16 @@ const mobileFilterOpen = ref(false)
     <div class="site-container">
       <div class="library-layout">
         <aside class="library-sidebar">
-          <div class="filter-group">
-            <h3>一级分类</h3>
-            <button
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': !selectedCategory }"
-              @click="selectedCategory = ''; selectedSubcategory = ''"
-            >
-              全部
-            </button>
-            <button
-              v-for="cat in categories ?? []"
-              :key="cat.id"
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': selectedCategory === cat.slug }"
-              @click="selectedCategory = cat.slug; selectedSubcategory = ''"
-            >
-              <UIcon :name="cat.icon || 'i-lucide-bookmark'" />
-              <span>{{ cat.name }}</span>
-              <em>{{ cat.novelCount }}</em>
-            </button>
-          </div>
-
-          <div
-            v-if="currentSubcategories.length"
-            class="filter-group"
-          >
-            <h3>{{ currentCategory.name }} · 二级分类</h3>
-            <button
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': !selectedSubcategory }"
-              @click="selectedSubcategory = ''"
-            >
-              全部
-            </button>
-            <button
-              v-for="sub in currentSubcategories"
-              :key="sub.id"
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': selectedSubcategory === sub.slug }"
-              @click="selectedSubcategory = sub.slug"
-            >
-              <span>{{ sub.name }}</span>
-              <em>{{ sub.novelCount }}</em>
-            </button>
-          </div>
-
-          <div class="filter-group">
-            <h3>完结状态</h3>
-            <button
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': !selectedStatus }"
-              @click="selectedStatus = ''"
-            >
-              全部
-            </button>
-            <button
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': selectedStatus === 'serializing' }"
-              @click="selectedStatus = 'serializing'"
-            >
-              连载中
-            </button>
-            <button
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': selectedStatus === 'completed' }"
-              @click="selectedStatus = 'completed'"
-            >
-              已完结
-            </button>
-          </div>
-
-          <div
-            v-if="allTags.length"
-            class="filter-group"
-          >
-            <h3>标签</h3>
-            <button
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': !selectedTag }"
-              @click="selectedTag = ''"
-            >
-              全部
-            </button>
-            <button
-              v-for="tag in allTags"
-              :key="tag.id"
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': selectedTag === tag.id }"
-              @click="selectedTag = tag.id"
-            >
-              <span>{{ tag.name }}</span>
-            </button>
-          </div>
-
-          <div class="filter-group filter-group--sort">
-            <h3>排序方式</h3>
-            <button
-              v-for="opt in sortOptions"
-              :key="opt.value"
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': selectedSort === opt.value }"
-              @click="selectedSort = opt.value"
-            >
-              {{ opt.label }}
-            </button>
-          </div>
+          <NovelLibraryFilters
+            v-model:category="selectedCategory"
+            v-model:subcategory="selectedSubcategory"
+            v-model:status="selectedStatus"
+            v-model:tag="selectedTag"
+            v-model:sort="selectedSort"
+            :categories="categories"
+            :tags="allTags"
+            show-sort
+          />
         </aside>
 
         <section class="library-main">
@@ -323,103 +210,15 @@ const mobileFilterOpen = ref(false)
     >
       <template #body>
         <div class="mobile-filter">
-          <div class="filter-group">
-            <h3>一级分类</h3>
-            <button
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': !selectedCategory }"
-              @click="selectedCategory = ''; selectedSubcategory = ''"
-            >
-              全部
-            </button>
-            <button
-              v-for="cat in categories ?? []"
-              :key="cat.id"
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': selectedCategory === cat.slug }"
-              @click="selectedCategory = cat.slug; selectedSubcategory = ''"
-            >
-              <UIcon :name="cat.icon || 'i-lucide-bookmark'" />
-              <span>{{ cat.name }}</span>
-            </button>
-          </div>
-          <div
-            v-if="currentCategory?.children?.length"
-            class="filter-group"
-          >
-            <h3>二级分类</h3>
-            <button
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': !selectedSubcategory }"
-              @click="selectedSubcategory = ''"
-            >
-              全部
-            </button>
-            <button
-              v-for="sub in currentCategory.children"
-              :key="sub.id"
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': selectedSubcategory === sub.slug }"
-              @click="selectedSubcategory = sub.slug"
-            >
-              {{ sub.name }}
-            </button>
-          </div>
-          <div class="filter-group">
-            <h3>完结状态</h3>
-            <button
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': !selectedStatus }"
-              @click="selectedStatus = ''"
-            >
-              全部
-            </button>
-            <button
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': selectedStatus === 'serializing' }"
-              @click="selectedStatus = 'serializing'"
-            >
-              连载中
-            </button>
-            <button
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': selectedStatus === 'completed' }"
-              @click="selectedStatus = 'completed'"
-            >
-              已完结
-            </button>
-          </div>
-          <div
-            v-if="allTags.length"
-            class="filter-group"
-          >
-            <h3>标签</h3>
-            <button
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': !selectedTag }"
-              @click="selectedTag = ''"
-            >
-              全部
-            </button>
-            <button
-              v-for="tag in allTags"
-              :key="tag.id"
-              type="button"
-              class="filter-item"
-              :class="{ 'is-active': selectedTag === tag.id }"
-              @click="selectedTag = tag.id"
-            >
-              {{ tag.name }}
-            </button>
-          </div>
+          <NovelLibraryFilters
+            v-model:category="selectedCategory"
+            v-model:subcategory="selectedSubcategory"
+            v-model:status="selectedStatus"
+            v-model:tag="selectedTag"
+            v-model:sort="selectedSort"
+            :categories="categories"
+            :tags="allTags"
+          />
           <div class="mobile-filter__actions">
             <UButton
               label="清除全部"

@@ -161,17 +161,21 @@ export const useAdminStore = defineStore('admin', () => {
   function deleteAnnouncement(id: string) { data.value.announcements = data.value.announcements.filter(item => item.id !== id); persist() }
   function toggleAnnouncement(id: string) { data.value.announcements = data.value.announcements.map(item => item.id === id ? { ...item, enabled: !item.enabled } : item); persist() }
 
-  function review(id: string, status: 'approved' | 'rejected') {
+  async function review(id: string, status: 'approved' | 'rejected') {
+    await $fetch('/api/admin/moderation', { method: 'PATCH', body: { kind: 'review', id, status } })
     data.value.reviews = data.value.reviews.map(item => item.id === id ? { ...item, status } : item)
+    useCommentsStore().addNotification('review', '审核结果已更新', status === 'approved' ? '你的内容已通过审核。' : '你的内容未通过审核，请根据规范修改。')
     persist()
   }
 
-  function resolveReport(id: string, status: 'resolved' | 'dismissed') {
+  async function resolveReport(id: string, status: 'resolved' | 'dismissed') {
+    await $fetch('/api/admin/moderation', { method: 'PATCH', body: { kind: 'report', id, status } })
     data.value.reports = data.value.reports.map(item => item.id === id ? { ...item, status } : item)
     persist()
   }
 
-  function setBan(id: string, banned: boolean, reason?: string) {
+  async function setBan(id: string, banned: boolean, reason?: string) {
+    await $fetch('/api/admin/moderation', { method: 'PATCH', body: { kind: 'ban', id, banned, reason } })
     data.value.users = data.value.users.map(item => item.id === id
       ? { ...item, banned, banReason: banned ? reason?.trim() || '违反社区规范' : undefined }
       : item)

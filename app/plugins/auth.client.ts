@@ -5,13 +5,21 @@
 export default defineNuxtPlugin(() => {
   const auth = useAuthStore()
   const progressSync = useReadingProgressSync()
+  const bookshelfSync = useBookshelfSyncStore()
+  const account = useAccountStore()
   auth.hydrate()
+  account.initialize()
 
   watch(
-    () => auth.user?.id,
-    (userId) => {
-      if (userId) progressSync.start(userId)
-      else progressSync.stop()
+    [() => auth.user?.id, () => account.preferences.reading.syncProgress],
+    ([userId, syncEnabled]) => {
+      if (userId && syncEnabled) {
+        progressSync.start(userId)
+        bookshelfSync.start(userId)
+      } else {
+        progressSync.stop()
+        bookshelfSync.stop()
+      }
     },
     { immediate: true }
   )

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { NovelSummary } from '~/types/novel'
+import type { RankingKind } from '~/composables/useRankingMetrics'
 
 useSeoMeta({
   title: '排行｜若林轻小说',
@@ -9,7 +9,7 @@ useSeoMeta({
 const route = useRoute()
 const router = useRouter()
 
-type RankingTab = 'hot' | 'bookshelf' | 'debut' | 'completed'
+type RankingTab = RankingKind
 
 const tabs: { value: RankingTab, label: string, description: string }[] = [
   { value: 'hot', label: '热门', description: '综合阅读活跃度和最近更新。' },
@@ -28,38 +28,10 @@ watch(activeTab, (value) => {
 
 const { data: allNovels, pending, error, refresh } = useNovelList()
 
-// fixtures 阶段没有真实热度/收藏增长数据，用稳定可解释的派生指标代替；
-// 阶段 8 接入真实 API 时，每个 tab 会调用对应的排行接口。
-const rankedNovels = computed<NovelSummary[]>(() => {
-  const list = [...(allNovels.value ?? [])]
-  switch (activeTab.value) {
-    case 'bookshelf':
-      // 没有 bookshelfCount 字段时，用字数作为弱代理（更长更易被收藏）。
-      return list.sort((a, b) => b.wordCount - a.wordCount)
-    case 'debut':
-      return list
-        .filter(n => n.status === 'serializing')
-        .sort((a, b) => a.wordCount - b.wordCount)
-    case 'completed':
-      return list
-        .filter(n => n.status === 'completed')
-        .sort((a, b) => b.wordCount - a.wordCount)
-    case 'hot':
-    default:
-      // 热门：最近更新优先，字数次之。
-      return list.sort((a, b) => {
-        const timeDiff = b.updatedAt.localeCompare(a.updatedAt)
-        if (timeDiff !== 0) return timeDiff
-        return b.wordCount - a.wordCount
-      })
-  }
-})
+const { ranked, updatedAt: updatedLabel, period: periodLabel, policy } = useRankingMetrics(allNovels, activeTab)
+const rankedNovels = computed(() => ranked.value.map(item => item.novel))
 
 const currentTabMeta = computed(() => tabs.find(t => t.value === activeTab.value)!)
-
-const today = new Date()
-const periodLabel = `${today.getFullYear()} 年 ${today.getMonth() + 1} 月`
-const updatedLabel = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
 function formatWordCount(n: number) {
   return n >= 10000 ? `${(n / 10000).toFixed(1)} 万字` : `${n.toLocaleString('zh-CN')} 字`
@@ -98,7 +70,7 @@ function formatDate(iso: string) {
       </div>
 
       <p class="rankings-tab-desc">
-        {{ currentTabMeta.description }}
+        {{ currentTabMeta.description }} {{ policy }}
       </p>
 
       <ErrorState

@@ -22,12 +22,20 @@ export interface Reply {
 
 export interface CommunityNotification {
   id: string
-  type: 'reply' | 'like' | 'system'
+  type: 'reply' | 'mention' | 'like' | 'review' | 'update' | 'system'
   title: string
   description: string
   to?: string
   createdAt: string
   read: boolean
+}
+
+export interface CommentPage {
+  items: Comment[]
+  page: number
+  pageSize: number
+  total: number
+  pageCount: number
 }
 
 export interface Comment {
